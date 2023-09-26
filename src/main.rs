@@ -1,3 +1,5 @@
+extern crate sha2;
+use sha2::{Sha256, Digest};
 // Define the structure of a transaction moving amount of coins from one party (sender) to another (receiver)
 struct Transaction {
     sender: String,
@@ -84,5 +86,33 @@ impl Blockchain {
     // Method to verify the integrity of the blockchain.
     fn verify_chain(&self) -> bool {
         // TODO: Check the chain for any discrepancies or tampering.
+        true
+    }
+}
+
+
+fn main() {
+    // Create a new blockchain
+    let mut blockchain = Blockchain::new();
+
+    // Add a block with one transaction
+    let transaction = Transaction {
+        sender: "Alice".to_string(),
+        receiver: "Bob".to_string(),
+        amount: 50.0,
+    };
+    blockchain.add_block(vec![transaction]);
+
+    // Print the blocks
+    for block in &blockchain.chain {
+        println!("Block:");
+        println!("Timestamp: {}", block.timestamp);
+        for tx in &block.transactions {
+            println!("Transaction: {} -> {}: {}", tx.sender, tx.receiver, tx.amount);
+        }
+        println!("Previous Hash: {}", block.previous_hash);
+        println!("Hash: {}", block.hash);
+        println!("Nonce: {}", block.nonce);
+        println!("-----");
     }
 }
