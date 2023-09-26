@@ -43,8 +43,17 @@ impl Blockchain {
 
 // Placeholder for the hashing method on the Block
 impl Block {
-    fn calculate_hash(&self) -> String {
-        // TODO: Use a cryptographic function to hash block contents
+        fn calculate_hash(&self) -> String {
+        let transactions_as_string = self.transactions.iter()
+            .map(|tx| format!("{}->{}:{}", tx.sender, tx.receiver, tx.amount))
+            .collect::<Vec<String>>()
+            .join(",");
+            
+        let contents = format!("{}{}{}{}", self.timestamp, transactions_as_string, self.previous_hash, self.nonce);
+        
+        let mut hasher = Sha256::new();
+        hasher.update(contents);
+        format!("{:x}", hasher.finalize())
     }
 }
 
