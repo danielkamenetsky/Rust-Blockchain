@@ -40,3 +40,18 @@ impl Blockchain {
         // TODO: Create the new block here with PoW and hashing
     }
 }
+
+// Placeholder for the hashing method on the Block
+impl Block {
+    fn calculate_hash(&self) -> String {
+        // TODO: Use a cryptographic function to hash block contents
+    }
+}
+
+// Placeholder for the Proof-of-Work mechanism on the Blockchain
+impl Blockchain {
+    // Method implementing the PoW mechanism
+    fn proof_of_work(&self, block: &mut Block) {
+        // TODO: Implement PoW by modifying block's nonce until the hash has the required number of leading zeroes
+    }
+}
