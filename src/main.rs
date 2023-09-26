@@ -54,10 +54,6 @@ impl Blockchain {
     fn proof_of_work(&self, block: &mut Block) {
         // TODO: Implement PoW by modifying block's nonce until the hash has the required number of leading zeroes
     }
-}
-
-// Placeholder for the transaction system on the Blockchain.
-impl Blockchain {
     // Method to add a new transaction to the next block to be mined.
     fn add_transaction(&mut self, sender: String, receiver: String, amount: f32) {
         let transaction = Transaction { sender, receiver, amount };
@@ -76,10 +72,6 @@ impl Blockchain {
     fn execute_contract(&mut self, contract: SmartContract) {
         // TODO: Execute the given contract and create transactions based on its conditions.
     }
-}
-
-// Placeholder for chain verification logic.
-impl Blockchain {
     // Method to verify the integrity of the blockchain.
     fn verify_chain(&self) -> bool {
         // TODO: Check the chain for any discrepancies or tampering.
