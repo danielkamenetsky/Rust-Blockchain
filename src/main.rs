@@ -19,6 +19,8 @@ struct Block {
 // Define structure for the blockchain
 struct Blockchain {
     chain: Vec<Block>,
+    pending_transactions: Vec<Transaction>,
+
 }
 
 
@@ -34,6 +36,8 @@ impl Blockchain {
         };
         Self {
             chain: vec![genesis_block],
+            pending_transactions: vec![],
+
         }
     }
     // Method to add a new block to the blockchain
@@ -68,7 +72,21 @@ impl Blockchain {
     // Method to add a new transaction to the next block to be mined.
     fn add_transaction(&mut self, sender: String, receiver: String, amount: f32) {
         let transaction = Transaction { sender, receiver, amount };
-        // TODO: Add the transaction to the next block to be mined
+        self.pending_transactions.push(transaction);
+    }
+    // Mine a new block from pending transactions
+    fn mine_block(&mut self) {
+        let previous_hash = self.chain.last().unwrap().hash.clone();
+        let mut new_block = Block {
+            timestamp: 0, // You can use the current timestamp here
+            transactions: self.pending_transactions.clone(),
+            previous_hash,
+            hash: String::from("0"),
+            nonce: 0,
+        };
+        self.proof_of_work(&mut new_block);
+        self.chain.push(new_block);
+        self.pending_transactions.clear();
     }
 }
 
