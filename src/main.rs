@@ -92,16 +92,22 @@ impl Blockchain {
     }
 }
 
-// Placeholder for a basic smart contract system.
+#[derive(Clone)]
 struct SmartContract {
-    conditions: Vec<String>,  // Conditions for the distribution.
-    // TODO: Add more fields as required.
+        sender: String,
+        receiver: String,
+        amount: f32,
+        condition_block_height: usize,
 }
+
 
 impl Blockchain {
     // Method to execute a given smart contract and create transactions based on its conditions.
     fn execute_contract(&mut self, contract: SmartContract) {
-        // TODO: Execute the given contract and create transactions based on its conditions.
+        if self.chain.len() >= contract.condition_block_height {
+            // Execute the contract by adding a transaction
+            self.add_transaction(contract.sender, contract.receiver, contract.amount);
+        }
     }
     // Method to verify the integrity of the blockchain.
     fn verify_chain(&self) -> bool {
@@ -114,17 +120,32 @@ impl Blockchain {
 fn main() {
     // Create a new blockchain
     let mut blockchain = Blockchain::new();
+    println!("Created a new blockchain.");
 
     // Add some transactions
     blockchain.add_transaction("Alice".to_string(), "Bob".to_string(), 50.0);
     blockchain.add_transaction("Bob".to_string(), "Charlie".to_string(), 25.0);
+    println!("Added transactions to the blockchain.");
 
     // Mine a new block
     blockchain.mine_block();
+    println!("Mined a new block.");
 
-    // Add another transaction and mine another block
-    blockchain.add_transaction("Charlie".to_string(), "Alice".to_string(), 10.0);
-    blockchain.mine_block();
+    // Add a smart contract
+    let contract = SmartContract {
+        sender: "Alice".to_string(),
+        receiver: "Bob".to_string(),
+        amount: 100.0,
+        condition_block_height: 3,
+    };
+
+    // Add more transactions and mine blocks while checking the smart contract
+    for _ in 0..3 {
+        blockchain.add_transaction("Charlie".to_string(), "Alice".to_string(), 10.0);
+        blockchain.mine_block();
+        blockchain.execute_contract(contract.clone());
+        println!("Mined another block and checked smart contract execution.");
+    }
 
     // Print the blocks
     for block in &blockchain.chain {
@@ -140,3 +161,44 @@ fn main() {
     }
 }
 
+
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+
+//     #[test]
+//     fn test_create_blockchain() {
+//         let blockchain = Blockchain::new();
+//         assert_eq!(blockchain.chain.len(), 1); // Only the genesis block should be present
+//     }
+
+//     #[test]
+//     fn test_add_transaction() {
+//         let mut blockchain = Blockchain::new();
+//         blockchain.add_transaction("Alice".to_string(), "Bob".to_string(), 50.0);
+//         assert_eq!(blockchain.pending_transactions.len(), 1);
+//     }
+
+//     #[test]
+//     fn test_mine_block() {
+//         let mut blockchain = Blockchain::new();
+//         blockchain.add_transaction("Alice".to_string(), "Bob".to_string(), 50.0);
+//         blockchain.mine_block();
+//         assert_eq!(blockchain.chain.len(), 2); // Genesis block + the mined block
+//     }
+
+//     #[test]
+//     fn test_execute_contract() {
+//         let mut blockchain = Blockchain::new();
+//         let contract = SmartContract {
+//             sender: "Alice".to_string(),
+//             receiver: "Bob".to_string(),
+//             amount: 100.0,
+//             condition_block_height: 2,
+//         };
+//         blockchain.mine_block(); // This will make the blockchain length 2
+//         blockchain.execute_contract(contract);
+//         assert_eq!(blockchain.pending_transactions.len(), 1); // Contract should have been executed
+//     }
+// }
