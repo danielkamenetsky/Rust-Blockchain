@@ -1,11 +1,13 @@
 extern crate sha2;
 use sha2::{Sha256, Digest};
 // Define the structure of a transaction moving amount of coins from one party (sender) to another (receiver)
+#[derive(Clone)]
 struct Transaction {
     sender: String,
     receiver: String,
     amount: f32,
 }
+
 
 // Define structure for a block in the blockchain
 struct Block {
@@ -113,13 +115,16 @@ fn main() {
     // Create a new blockchain
     let mut blockchain = Blockchain::new();
 
-    // Add a block with one transaction
-    let transaction = Transaction {
-        sender: "Alice".to_string(),
-        receiver: "Bob".to_string(),
-        amount: 50.0,
-    };
-    blockchain.add_block(vec![transaction]);
+    // Add some transactions
+    blockchain.add_transaction("Alice".to_string(), "Bob".to_string(), 50.0);
+    blockchain.add_transaction("Bob".to_string(), "Charlie".to_string(), 25.0);
+
+    // Mine a new block
+    blockchain.mine_block();
+
+    // Add another transaction and mine another block
+    blockchain.add_transaction("Charlie".to_string(), "Alice".to_string(), 10.0);
+    blockchain.mine_block();
 
     // Print the blocks
     for block in &blockchain.chain {
@@ -134,3 +139,4 @@ fn main() {
         println!("-----");
     }
 }
+
