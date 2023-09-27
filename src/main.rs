@@ -43,8 +43,8 @@ impl Blockchain {
         }
     }
     // Method to add a new block to the blockchain
-    fn add_block(&mut self, transactions: Vec<Transaction>) {
-        let previous_hash = self.chain.last().unwrap().hash.clone();
+    fn add_block(&mut self, _transactions: Vec<Transaction>) {
+        let _previous_hash = self.chain.last().unwrap().hash.clone();
         // TODO: Create the new block here with PoW and hashing
     }
 }
@@ -67,10 +67,13 @@ impl Block {
 
 // Placeholder for the Proof-of-Work mechanism on the Blockchain
 impl Blockchain {
-    // Method implementing the PoW mechanism
     fn proof_of_work(&self, block: &mut Block) {
-        // TODO: Implement PoW by modifying block's nonce until the hash has the required number of leading zeroes
+        while block.hash.len() < 4 || &block.hash[..4] != "0000" {
+            block.nonce += 1;
+            block.hash = block.calculate_hash();
+        }
     }
+
     // Method to add a new transaction to the next block to be mined.
     fn add_transaction(&mut self, sender: String, receiver: String, amount: f32) {
         let transaction = Transaction { sender, receiver, amount };
@@ -109,9 +112,20 @@ impl Blockchain {
             self.add_transaction(contract.sender, contract.receiver, contract.amount);
         }
     }
-    // Method to verify the integrity of the blockchain.
+}
+
+
+// Chain verification
+impl Blockchain {
     fn verify_chain(&self) -> bool {
-        // TODO: Check the chain for any discrepancies or tampering.
+        for (i, block) in self.chain.iter().enumerate().skip(1) {
+            if block.hash != block.calculate_hash() {
+                return false;
+            }
+            if block.previous_hash != self.chain[i - 1].hash {
+                return false;
+            }
+        }
         true
     }
 }
@@ -129,7 +143,9 @@ fn main() {
 
     // Mine a new block
     blockchain.mine_block();
-    println!("Mined a new block.");
+    println!("Mined a new block with Hash: {} and Nonce: {}", 
+             blockchain.chain.last().unwrap().hash, 
+             blockchain.chain.last().unwrap().nonce);
 
     // Add a smart contract
     let contract = SmartContract {
@@ -144,8 +160,21 @@ fn main() {
         blockchain.add_transaction("Charlie".to_string(), "Alice".to_string(), 10.0);
         blockchain.mine_block();
         blockchain.execute_contract(contract.clone());
-        println!("Mined another block and checked smart contract execution.");
+        println!("Mined another block with Hash: {} and Nonce: {}", 
+                 blockchain.chain.last().unwrap().hash, 
+                 blockchain.chain.last().unwrap().nonce);
+        println!("Checked smart contract execution.");
     }
+
+    println!("Is the blockchain valid? {}", blockchain.verify_chain());
+
+    // Tamper with the blockchain
+    if !blockchain.chain.is_empty() {
+        blockchain.chain[1].transactions[0].amount = 1_000_000.0;  // Tampering
+        println!("Tampered with a block's transaction.");
+    }
+
+    println!("Is the blockchain valid after tampering? {}", blockchain.verify_chain());
 
     // Print the blocks
     for block in &blockchain.chain {
@@ -163,42 +192,67 @@ fn main() {
 
 
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
 
-//     #[test]
-//     fn test_create_blockchain() {
-//         let blockchain = Blockchain::new();
-//         assert_eq!(blockchain.chain.len(), 1); // Only the genesis block should be present
-//     }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-//     #[test]
-//     fn test_add_transaction() {
-//         let mut blockchain = Blockchain::new();
-//         blockchain.add_transaction("Alice".to_string(), "Bob".to_string(), 50.0);
-//         assert_eq!(blockchain.pending_transactions.len(), 1);
-//     }
+    #[test]
+    fn test_create_blockchain() {
+        let blockchain = Blockchain::new();
+        assert_eq!(blockchain.chain.len(), 1); // Only the genesis block should be present
+    }
 
-//     #[test]
-//     fn test_mine_block() {
-//         let mut blockchain = Blockchain::new();
-//         blockchain.add_transaction("Alice".to_string(), "Bob".to_string(), 50.0);
-//         blockchain.mine_block();
-//         assert_eq!(blockchain.chain.len(), 2); // Genesis block + the mined block
-//     }
+    #[test]
+    fn test_add_transaction() {
+        let mut blockchain = Blockchain::new();
+        blockchain.add_transaction("Alice".to_string(), "Bob".to_string(), 50.0);
+        assert_eq!(blockchain.pending_transactions.len(), 1);
+    }
 
-//     #[test]
-//     fn test_execute_contract() {
-//         let mut blockchain = Blockchain::new();
-//         let contract = SmartContract {
-//             sender: "Alice".to_string(),
-//             receiver: "Bob".to_string(),
-//             amount: 100.0,
-//             condition_block_height: 2,
-//         };
-//         blockchain.mine_block(); // This will make the blockchain length 2
-//         blockchain.execute_contract(contract);
-//         assert_eq!(blockchain.pending_transactions.len(), 1); // Contract should have been executed
-//     }
-// }
+    #[test]
+    fn test_mine_block() {
+        let mut blockchain = Blockchain::new();
+        blockchain.add_transaction("Alice".to_string(), "Bob".to_string(), 50.0);
+        blockchain.mine_block();
+        assert_eq!(blockchain.chain.len(), 2); // Genesis block + the mined block
+    }
+
+    #[test]
+    fn test_execute_contract() {
+        let mut blockchain = Blockchain::new();
+        let contract = SmartContract {
+            sender: "Alice".to_string(),
+            receiver: "Bob".to_string(),
+            amount: 100.0,
+            condition_block_height: 2,
+        };
+        blockchain.mine_block(); // This will make the blockchain length 2
+        blockchain.execute_contract(contract);
+        assert_eq!(blockchain.pending_transactions.len(), 1); // Contract should have been executed
+    }
+     #[test]
+    fn test_pow() {
+        let mut block = Block {
+            timestamp: 0,
+            transactions: vec![],
+            previous_hash: String::from("0"),
+            hash: String::from("0"),
+            nonce: 0,
+        };
+        let blockchain = Blockchain::new();
+        blockchain.proof_of_work(&mut block);
+        assert_eq!(&block.hash[..4], "0000");
+    }
+
+    #[test]
+    fn test_blockchain_verification() {
+        let mut blockchain = Blockchain::new();
+        blockchain.add_transaction("Alice".to_string(), "Bob".to_string(), 50.0);
+        blockchain.mine_block();
+        assert_eq!(blockchain.verify_chain(), true);
+        // Tampering with the chain
+        blockchain.chain[1].hash = String::from("tampered");
+        assert_eq!(blockchain.verify_chain(), false);
+    }
+}
